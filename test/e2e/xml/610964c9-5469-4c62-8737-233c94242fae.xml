@@ -1,0 +1,9 @@
+<domain type='kvm' id='4'>
+  <name>web01</name>
+  <uuid>610964c9-5469-4c62-8737-233c94242fae</uuid>
+  <devices>
+    <graphics type='vnc' port='@VNC_PORT@' autoport='yes' listen='127.0.0.1'>
+      <listen type='address' address='127.0.0.1'/>
+    </graphics>
+  </devices>
+</domain>

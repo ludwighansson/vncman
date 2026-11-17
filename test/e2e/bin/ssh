@@ -1,0 +1,22 @@
+#!/bin/sh
+# Fake ssh for the end-to-end check. It logs its arguments and emulates a
+# master connection, ssh -W, and remote commands on a node.
+printf '%s\n' "$*" >> "$E2E_STATE/ssh.log"
+mode=run; target=""; remote=""
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -o) shift ;;
+    -O) mode="ctl:$2"; shift ;;
+    -W) mode=fwd; target="$2"; shift ;;
+    -n|-T) ;;
+    *) shift; remote="$*"; break ;;
+  esac
+  shift
+done
+case "$mode" in
+  ctl:check) [ -f "$E2E_STATE/master" ] && exit 0; echo "Control socket connect: No such file or directory" >&2; exit 255 ;;
+  ctl:exit) rm -f "$E2E_STATE/master"; echo "Exit request sent." >&2; exit 0 ;;
+  fwd) exec nc "${target%:*}" "${target##*:}" ;;
+esac
+if [ "$remote" = "true" ]; then touch "$E2E_STATE/master"; exit 0; fi
+PATH="$E2E_DIR/remote:$PATH" exec sh -c "$remote"

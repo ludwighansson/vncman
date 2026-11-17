@@ -1,0 +1,3 @@
+#!/bin/sh
+# Fake browser opener (open on macOS): records the URL.
+printf '%s\n' "$@" >> "$E2E_STATE/open.log"

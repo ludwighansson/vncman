@@ -1,0 +1,3 @@
+#!/bin/sh
+# Fake browser opener (xdg-open on Linux): records the URL.
+printf '%s\n' "$@" >> "$E2E_STATE/open.log"

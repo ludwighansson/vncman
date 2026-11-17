@@ -1,0 +1,12 @@
+<domain type='kvm' id='7'>
+  <name>instance-0000a1b2</name>
+  <uuid>45bd23e4-39fd-4c00-a5f7-edf0d3ed2ae1</uuid>
+  <metadata>
+    <nova:instance xmlns:nova="http://openstack.org/xmlns/libvirt/nova/1.1">
+      <nova:name>web-prod-1</nova:name>
+      <nova:flavor name="m1.large"/>
+      <nova:owner><nova:project uuid="p1">acme-prod</nova:project></nova:owner>
+    </nova:instance>
+  </metadata>
+  <devices><graphics type='vnc' port='15901' autoport='yes' listen='0.0.0.0'/></devices>
+</domain>

@@ -1,0 +1,13 @@
+#!/bin/sh
+# Fake read-only virsh, as on a node where it works without sudo.
+for a in "$@"; do
+  case "$a" in
+    list) printf '%s\n%s\n\n' 610964c9-5469-4c62-8737-233c94242fae 45bd23e4-39fd-4c00-a5f7-edf0d3ed2ae1; exit 0 ;;
+    *dumpxml*)
+      echo "$a" | tr ';' '\n' | while read -r cmd uuid; do
+        sed "s/@VNC_PORT@/$E2E_VNC_PORT/" "$E2E_DIR/xml/$uuid.xml"
+      done
+      exit 0 ;;
+  esac
+done
+echo "error: unknown command" >&2; exit 1

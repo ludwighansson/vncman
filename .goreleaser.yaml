@@ -1,0 +1,53 @@
+# GoReleaser configuration (ADR 0010): https://goreleaser.com
+# Test locally without publishing: goreleaser release --snapshot --clean
+version: 2
+
+project_name: vncman
+
+before:
+  hooks:
+    - go mod tidy
+    - go test ./...
+
+builds:
+  - id: vncman
+    main: ./cmd/vncman
+    binary: vncman
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w -X main.version={{ .Version }}
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    files:
+      - LICENSE
+      - README.md
+      - docs/adr/*.md
+      # noVNC is embedded in the binary and its MPL-2.0 license must ship with it.
+      - src: internal/console/novnc/LICENSE.txt
+        dst: licenses/novnc
+        strip_parent: true
+
+checksum:
+  name_template: checksums.txt
+
+snapshot:
+  version_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"

@@ -18,6 +18,7 @@ The chosen workflow is to browse in the terminal ([0005](0005-browse-in-a-termin
 
 - **Enter opens the console in a new browser tab, using noVNC.**
   - VNCMan embeds a pinned noVNC release in its binary with `embed.FS` and serves it from the local web server ([0006](0006-lock-down-the-local-web-server.md)). It needs no CDN and works offline.
+  - The repository stores noVNC's `vendor/` directory as `third_party/`, and the server serves it under its original path. Go module zips leave out vendor directories ([golang/go#31562](https://github.com/golang/go/issues/31562)), so `go install` builds would otherwise lack them. This was added in 0.1.1, after `go install` builds of 0.1.0 failed to load pako.
   - It uses noVNC's full client page (`vnc.html`) with `autoconnect`, `resize=scale`, and a `path` that points to the console's WebSocket ([0003](0003-relay-vnc-over-ssh-channels.md)). That page already provides Ctrl-Alt-Del, clipboard, fullscreen and scaling controls.
   - The tab title shows the VM's display name and the node.
   - VNCMan opens the URL in the default browser with `open`.

@@ -7,6 +7,8 @@ the terminal UI like a user, connects to the browser console's WebSocket
 like noVNC would, and opens a viewer that hands off and exits like Remmina.
 
 Run from anywhere: python3 test/e2e/run.py
+To test a binary built another way, for example with go install, set
+VNCMAN_BINARY to its path.
 Needs: go, python3 and nc. Works on macOS and Linux.
 """
 import base64
@@ -31,6 +33,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 ANSI = re.compile(rb"\x1b\[[0-9;?]*[ -/]*[@-~]|\x1b[()][0-9A-Za-z]|\x1b[=>]")
 GREETING = b"RFB 003.008\n"
+# Static imports and re-exports, including those spanning several lines.
+IMPORT = re.compile(r"""^\s*(?:(?:import|export)\s[\w\s{},*$]*?from\s*|import\s*)["']([^"']+)["']""", re.M)
 
 screen = b""
 failures = []
@@ -143,9 +147,35 @@ def main():
     print("\nall checks passed")
 
 
+def load_modules(conn, page):
+    """Follows the console page's module imports like a browser would.
+
+    Returns the paths that failed to load and the paths that loaded."""
+    base = "/novnc/"  # the page's <base href>
+    queue = [urllib.parse.urljoin(base, spec) for spec in IMPORT.findall(page)]
+    failed, loaded = {}, set()
+    while queue:
+        path = queue.pop()
+        if path in loaded or path in failed:
+            continue
+        conn.request("GET", path)
+        r = conn.getresponse()
+        body = r.read().decode(errors="replace")
+        if r.status != 200:
+            failed[path] = r.status
+            continue
+        loaded.add(path)
+        queue.extend(urllib.parse.urljoin(path, spec) for spec in IMPORT.findall(body))
+    return [f"{path} ({status})" for path, status in sorted(failed.items())], loaded
+
+
 def run(tmp):
-    binary = os.path.join(tmp, "vncman")
-    subprocess.run(["go", "build", "-o", binary, "./cmd/vncman"], cwd=REPO, check=True)
+    binary = os.environ.get("VNCMAN_BINARY")
+    if binary:
+        binary = os.path.abspath(binary)
+    else:
+        binary = os.path.join(tmp, "vncman")
+        subprocess.run(["go", "build", "-o", binary, "./cmd/vncman"], cwd=REPO, check=True)
 
     # The temporary directory is the home directory itself: one level deeper
     # and macOS's control socket path limit would be exceeded.
@@ -213,10 +243,10 @@ def run(tmp):
     page = resp.read().decode()
     check(resp.status == 200 and '<base href="/novnc/">' in page and "web01 · node1" in page,
           "console page is noVNC with the VM's title")
-    conn.request("GET", "/novnc/core/rfb.js")
-    r = conn.getresponse()
-    r.read()
-    check(r.status == 200, "noVNC's RFB module is served")
+    missing, loaded = load_modules(conn, page)
+    check(not missing and "/novnc/vendor/pako/lib/zlib/inflate.js" in loaded,
+          f"all {len(loaded)} modules the console page imports are served" +
+          (f"; missing: {', '.join(missing)}" if missing else ""))
 
     s, status = ws_connect(u.hostname, u.port, f"/ws/{token}", "https://attacker.example")
     s.close()

@@ -16,8 +16,11 @@ tar -xzf "$tmp/novnc.tar.gz" -C "$tmp/src" --strip-components=1
 rm -rf "$dest"
 mkdir -p "$dest"
 # Only what the browser needs: the client page, its app and core modules,
-# vendored dependencies, and the license files.
-cp -R "$tmp/src/app" "$tmp/src/core" "$tmp/src/vendor" "$dest/"
+# vendored dependencies, and the license files. Go module zips leave out
+# vendor directories, so vendor/ is stored as third_party/ and served under
+# its original name (see internal/console/console.go).
+cp -R "$tmp/src/app" "$tmp/src/core" "$dest/"
+cp -R "$tmp/src/vendor" "$dest/third_party"
 cp "$tmp/src/vnc.html" "$tmp/src/package.json" "$tmp/src/defaults.json" \
    "$tmp/src/mandatory.json" "$tmp/src/LICENSE.txt" "$tmp/src/AUTHORS" "$dest/"
 printf '%s\n' "$version" > "$dest/VERSION"

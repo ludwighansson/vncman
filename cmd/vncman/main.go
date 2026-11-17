@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime/debug"
+	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
 
@@ -21,6 +23,17 @@ import (
 
 // version is set at build time with -ldflags "-X main.version=...".
 var version = "dev"
+
+// fullVersion falls back to the module version that `go install` records.
+func fullVersion() string {
+	if version != "dev" {
+		return version
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return strings.TrimPrefix(info.Main.Version, "v")
+	}
+	return version
+}
 
 func main() {
 	if err := run(); err != nil {
@@ -50,7 +63,7 @@ func run() error {
 	}
 	flag.Parse()
 	if *showVersion {
-		fmt.Println("vncman", version)
+		fmt.Println("vncman", fullVersion())
 		return nil
 	}
 	if flag.NArg() > 1 {

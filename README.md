@@ -141,7 +141,7 @@ python3 test/e2e/run.py      # end-to-end check against a fake node; needs go, p
 
 The end-to-end check runs the real binary in a pseudo-terminal. It uses fake `ssh`, `virsh`, browser opener and viewer commands, plus a fake VNC server. It works on macOS and Linux and never touches your real home directory.
 
-noVNC (MPL-2.0, see `internal/console/novnc/LICENSE.txt`) is embedded from `internal/console/novnc`. Update it with `scripts/update-novnc.sh <tag>`.
+noVNC (MPL-2.0, see `internal/console/novnc/LICENSE.txt`) is embedded from `internal/console/novnc`. Update it with `scripts/update-novnc.sh <tag>`. Its `vendor/` directory is stored as `third_party/`, because Go module zips (and so `go install`) leave out vendor directories.
 
 Releases are built with [GoReleaser](https://goreleaser.com) from `.goreleaser.yaml`. Pushing a `vX.Y.Z` tag runs the release workflow, which publishes a GitHub release:
 

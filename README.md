@@ -143,7 +143,13 @@ The end-to-end check runs the real binary in a pseudo-terminal. It uses fake `ss
 
 noVNC (MPL-2.0, see `internal/console/novnc/LICENSE.txt`) is embedded from `internal/console/novnc`. Update it with `scripts/update-novnc.sh <tag>`.
 
-Releases are built with [GoReleaser](https://goreleaser.com) from `.goreleaser.yaml`. Push a `vX.Y.Z` tag, then run `goreleaser release`. To test a release locally without publishing, run `goreleaser release --snapshot --clean`.
+Releases are built with [GoReleaser](https://goreleaser.com) from `.goreleaser.yaml`. Pushing a `vX.Y.Z` tag runs the release workflow, which publishes a GitHub release:
+
+```sh
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+To test a release locally without publishing, run `goreleaser release --snapshot --clean`.
 
 ## License
 
